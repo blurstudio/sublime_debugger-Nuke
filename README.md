@@ -1,7 +1,7 @@
-# A Debug Adapter for Debugging Python 2 within Autodesk 3ds Max
+# A Debug Adapter for Debugging Python 2 within Foundry's Nuke
 
 This adapter serves as a "middleman" between the Sublime Debugger plugin 
-and a DAP implementation for python (ptvsd) injected into 3ds Max.
+and a DAP implementation for python (ptvsd) injected into Nuke.
 
-It intercepts a few DAP requests to establish a connection between the debugger and 3ds Max, and 
+It intercepts a few DAP requests to establish a connection between the debugger and Nuke, and 
 otherwise forwards all communications between the debugger and ptvsd normally.
