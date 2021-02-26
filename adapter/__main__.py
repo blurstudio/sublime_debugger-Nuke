@@ -83,7 +83,7 @@ def on_receive_from_debugger(message):
     ptvsd_send_queue.put(message)
 
 
-def attach_to_nuke(contents: dict):
+def attach_to_nuke(contents):
     """
     Defines commands to send to Nuke, and sends the attach code to it.
     """
@@ -126,7 +126,7 @@ def attach_to_nuke(contents: dict):
     run(start_debugging, ((config['ptvsd']['host'], int(config['ptvsd']['port'])),))
 
 
-def send_code_to_nuke(code: str):
+def send_code_to_nuke(code):
     """
     Copies code to temporary file, formats execution template code with file location, 
     and sends execution code to Nuke via socket connection.
