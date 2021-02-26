@@ -13,9 +13,6 @@ To install from repo,
 - Install the "Debugger" plugin with Package Control if not done already
 - In the "Preferences" menu, select "Browse Packages..."
 - Clone this repository into the folder opened by Sublime
-
-## Use
-
 - Open the project you want to debug
     - If the debugger isn't open, select "Open" in the "Debugger" menu option
     - If it still doesn't open, ensure your project settings (Project -> Edit Project) are not empty, then try again
@@ -24,7 +21,10 @@ To install from repo,
 - There should be a "Nuke: Python 2 Debugging" option, click on it
 - You should have your project settings automatically opened, edited with the configuration
 - Save your project settings
-- Go back to Debugger -> Add or Select Configuration, and select "Nuke: Python 2 Debugging"
+
+## Use
+
+- Go to Debugger -> Add or Select Configuration, and select "Nuke: Python 2 Debugging"
 
 The Nuke Adapter should now be functional just by pressing play.
 
