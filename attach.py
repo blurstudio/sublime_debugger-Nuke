@@ -11,7 +11,6 @@ from threading import Timer
 from shutil import copy
 import sublime
 import time
-import sys
 import os
 
 
@@ -39,11 +38,6 @@ config_snippets = [
                 "host": "localhost",
                 "port": 7004
             },
-            "install": {
-                "Windows": r"C:\\\\Program Files\\\\path\\\\to\\\\nuke.exe",
-                "macOS": "/Applications/path/to/nuke",
-                "Linux": "/path/to/nuke",
-            },
         }
     },
 ]
@@ -51,7 +45,7 @@ config_snippets = [
 # The settings used by the Debugger to run the adapter.
 settings = {
     "type": adapter_type,
-    "command": [sys.executable, adapter_path]
+    "command": ["C:\Python27\python.exe", adapter_path]
 }
 
 # Instantiate variables needed for checking thread

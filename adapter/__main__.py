@@ -5,13 +5,13 @@ This script creates a connection between the Debugger and Foundry's Nuke for deb
 
 """
 
+from util import (Queue, log, run, dirname, ptvsd_path, join, split,
+                  basename, ATTACH_TEMPLATE, ATTACH_ARGS, RUN_TEMPLATE, 
+                  INITIALIZE_RESPONSE, NUKE_CMD_TEMPLATE, CONTENT_HEADER)
 from interface import DebuggerInterface
 from tempfile import gettempdir
-from queue import Queue
-from util import *
 import socket
 import json
-import sys
 
 interface = None
 
@@ -55,7 +55,7 @@ def on_receive_from_debugger(message):
         # Run init request once nuke connection is established and send success response to the debugger
         interface.send(json.dumps(json.loads(INITIALIZE_RESPONSE)))  # load and dump to remove indents
         processed_seqs.append(contents['seq'])
-        pass
+        return
     
     elif cmd == 'attach':
         # time to attach to nuke
@@ -113,7 +113,7 @@ def attach_to_nuke(contents):
                 Please ensure Nuke is running. If this is your first time
                 using the debug adapter, try restarting Nuke.
             """
-        )
+        ).with_traceback()
 
     run_code = RUN_TEMPLATE.format(
         hostname=config['ptvsd']['host'],

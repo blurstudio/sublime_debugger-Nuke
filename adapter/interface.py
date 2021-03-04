@@ -1,7 +1,6 @@
 
 from sys import stdin, stdout
-from queue import Queue
-from util import CONTENT_HEADER, run, log
+from util import CONTENT_HEADER, run, log, Queue
 
 
 class DebuggerInterface:

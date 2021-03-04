@@ -113,7 +113,7 @@ class SocketIO(object):
             try:
                 temp = self.__socket.recv(1024)
             except:
-                sys.stderr.write("\n\nSuccessfully disconnected.")
+                sys.stderr.write("\n\nSuccessfully disconnected from Sublime Debugger.")
                 return
             if not temp:
                 break

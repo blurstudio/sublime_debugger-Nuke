@@ -1,8 +1,15 @@
 
 from os.path import abspath, join, dirname, basename, split
 from datetime import datetime
-from threading import Timer
+from threading import Thread
 import json
+import sys
+
+# Import correct Queue
+if (sys.version_info[0] == 3):
+    from queue import Queue
+else:  # Python 2
+    from multiprocessing import Queue
 
 #  Debugging this adapter
 debug = True
@@ -26,8 +33,8 @@ def log(msg, json_msg=None):
             f.write('\n' + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - " + msg + '\n')
 
 
-def run(func, args=None, time=0.01):
-    Timer(time, func, args=args).start()
+def run(func, args=()):
+    Thread(target=func, args=args).start()
 
 
 # --- Resources --- #
