@@ -61,7 +61,7 @@ def on_receive_from_debugger(message):
         # time to attach to nuke
         run(attach_to_nuke, (contents,))
 
-        # Change arguments to valid ones for ptvsd
+        # Change arguments to valid ones for debugpy
         config = contents['arguments']
         new_args = ATTACH_ARGS.format(
             dir=dirname(config['program']).replace('\\', '\\\\'),
@@ -79,7 +79,7 @@ def on_receive_from_debugger(message):
     elif cmd == 'continue':
         avoiding_continue_stall = True
 
-    # Then just put the message in the ptvsd queue
+    # Then just put the message in the debugpy queue
     debugy_send_queue.put(message)
 
 
@@ -157,7 +157,7 @@ def send_code_to_nuke(code):
 
 def start_debugging(address):
     """
-    Connects to ptvsd in Nuke, then starts the threads needed to
+    Connects to debugpy in Nuke, then starts the threads needed to
     send and receive information from it
     """
 
@@ -168,7 +168,7 @@ def start_debugging(address):
 
     log("Successfully connected to Nuke for debugging. Starting...")
 
-    run(debugy_send_loop)  # Start sending requests to ptvsd
+    run(debugy_send_loop)  # Start sending requests to debugpy
 
     fstream = debugy_socket.makefile()
 
@@ -193,10 +193,10 @@ def start_debugging(address):
 
                 if content_length == 0:
                     message = total_content
-                    on_receive_from_ptvsd(message)
+                    on_receive_from_debugpy(message)
 
         except Exception as e:
-            log("Failure reading Nuke's ptvsd output: \n" + str(e.with_traceback()))
+            log("Failure reading Nuke's debugpy output: \n" + str(e.with_traceback()))
             debugy_socket.close()
             break
 
@@ -224,9 +224,9 @@ def debugy_send_loop():
                 return
 
 
-def on_receive_from_ptvsd(message):
+def on_receive_from_debugpy(message):
     """
-    Handles messages going from ptvsd to the debugger
+    Handles messages going from debugpy to the debugger
     """
 
     global inv_seq, artificial_seqs, waiting_for_pause_event, avoiding_continue_stall, stashed_event
@@ -236,8 +236,8 @@ def on_receive_from_ptvsd(message):
     cmd = c.get('command', '')
 
     if cmd == 'configurationDone':
-        # When Debugger & ptvsd are done setting up, send the code to debug
-        log('Received from ptvsd:', message)
+        # When Debugger & debugpy are done setting up, send the code to debug
+        log('Received from debugpy:', message)
         interface.send(message)
         send_code_to_nuke(run_code)
         return
@@ -257,9 +257,9 @@ def on_receive_from_ptvsd(message):
     # Send responses and events to debugger
     if seq in processed_seqs:
         # Should only be the initialization request
-        log("Already processed, ptvsd response is:", message)
+        log("Already processed, debugpy response is:", message)
     else:
-        log('Received from ptvsd:', message)
+        log('Received from debugpy:', message)
         interface.send(message)
 
 

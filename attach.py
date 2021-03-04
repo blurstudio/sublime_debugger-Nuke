@@ -35,7 +35,7 @@ config_snippets = [
             "program": "\${file\}",
             "request": "attach",  # can only be attach or launch
             "interpreter": sys.executable,
-            "debugpy":  # The host/port used to communicate with ptvsd in Nuke
+            "debugpy":  # The host/port used to communicate with debugpy in Nuke
             {
                 "host": "localhost",
                 "port": 7004
