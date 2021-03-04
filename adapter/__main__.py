@@ -5,7 +5,7 @@ This script creates a connection between the Debugger and Foundry's Nuke for deb
 
 """
 
-from util import (Queue, log, run, dirname, ptvsd_path, join, split,
+from util import (Queue, log, run, dirname, debugy_path, join, split,
                   basename, ATTACH_TEMPLATE, ATTACH_ARGS, RUN_TEMPLATE, 
                   INITIALIZE_RESPONSE, NUKE_CMD_TEMPLATE, CONTENT_HEADER)
 from interface import DebuggerInterface
@@ -20,8 +20,8 @@ run_code = ""
 attach_code = ""
 last_seq = -1
 
-ptvsd_send_queue = Queue()
-ptvsd_socket = None
+debugy_send_queue = Queue()
+debugy_socket = None
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
 def on_receive_from_debugger(message):
     """
     Intercept the initialize and attach requests from the debugger
-    while ptvsd is being set up
+    while debugy is being set up
     """
 
     global last_seq, avoiding_continue_stall
@@ -55,7 +55,7 @@ def on_receive_from_debugger(message):
         # Run init request once nuke connection is established and send success response to the debugger
         interface.send(json.dumps(json.loads(INITIALIZE_RESPONSE)))  # load and dump to remove indents
         processed_seqs.append(contents['seq'])
-        return
+        # pass
     
     elif cmd == 'attach':
         # time to attach to nuke
@@ -65,8 +65,8 @@ def on_receive_from_debugger(message):
         config = contents['arguments']
         new_args = ATTACH_ARGS.format(
             dir=dirname(config['program']).replace('\\', '\\\\'),
-            hostname=config['ptvsd']['host'],
-            port=int(config['ptvsd']['port']),
+            hostname=config['debugy']['host'],
+            port=int(config['debugy']['port']),
             # filepath=config['program'].replace('\\', '\\\\')
         )
 
@@ -80,7 +80,7 @@ def on_receive_from_debugger(message):
         avoiding_continue_stall = True
 
     # Then just put the message in the ptvsd queue
-    ptvsd_send_queue.put(message)
+    debugy_send_queue.put(message)
 
 
 def attach_to_nuke(contents):
@@ -93,9 +93,10 @@ def attach_to_nuke(contents):
 
     # format attach code appropriately
     attach_code = ATTACH_TEMPLATE.format(
-        ptvsd_path=ptvsd_path,
-        hostname=config['ptvsd']['host'],
-        port=int(config['ptvsd']['port'])
+        debugy_path=debugy_path,
+        hostname=config['debugy']['host'],
+        port=int(config['debugy']['port']),
+        interpreter=config['interpreter'],
     )
 
     # Copy code to temporary file and start a Nuke console with it
@@ -116,14 +117,14 @@ def attach_to_nuke(contents):
         ).with_traceback()
 
     run_code = RUN_TEMPLATE.format(
-        hostname=config['ptvsd']['host'],
-        port=int(config['ptvsd']['port']),
+        hostname=config['debugy']['host'],
+        port=int(config['debugy']['port']),
         dir=dirname(config['program']),
         file_name=split(config['program'])[1][:-3] or basename(split(config['program'])[0])[:-3]
     )
 
     # Then start the Nuke debugging threads
-    run(start_debugging, ((config['ptvsd']['host'], int(config['ptvsd']['port'])),))
+    run(start_debugging, ((config['debugy']['host'], int(config['debugy']['port'])),))
 
 
 def send_code_to_nuke(code):
@@ -162,14 +163,14 @@ def start_debugging(address):
 
     log("Connecting to " + address[0] + ":" + str(address[1]))
 
-    global ptvsd_socket
-    ptvsd_socket = socket.create_connection(address)
+    global debugy_socket
+    debugy_socket = socket.create_connection(address)
 
     log("Successfully connected to Nuke for debugging. Starting...")
 
-    run(ptvsd_send_loop)  # Start sending requests to ptvsd
+    run(debugy_send_loop)  # Start sending requests to ptvsd
 
-    fstream = ptvsd_socket.makefile()
+    fstream = debugy_socket.makefile()
 
     while True:
         try:
@@ -195,28 +196,31 @@ def start_debugging(address):
                     on_receive_from_ptvsd(message)
 
         except Exception as e:
-            log("Failure reading Nuke's ptvsd output: \n" + str(e))
-            ptvsd_socket.close()
+            log("Failure reading Nuke's ptvsd output: \n" + str(e.with_traceback()))
+            debugy_socket.close()
             break
 
 
-def ptvsd_send_loop():
+def debugy_send_loop():
     """
     The loop that waits for items to show in the send queue and prints them.
     Blocks until an item is present
     """
 
     while True:
-        msg = ptvsd_send_queue.get()
+        msg = debugy_send_queue.get()
         if msg is None:
             return
         else:
             try:
-                ptvsd_socket.send(bytes('Content-Length: {}\r\n\r\n'.format(len(msg)), 'UTF-8'))
-                ptvsd_socket.send(bytes(msg, 'UTF-8'))
-                log('Sent to ptvsd:', msg)
+                debugy_socket.send('Content-Length: {}\r\n\r\n'.format(len(msg)).encode('UTF-8'))
+                debugy_socket.send(msg.encode('UTF-8'))
+                log('Sent to debugy:', msg)
             except OSError:
                 log("Debug socket closed.")
+                return
+            except Exception as e:
+                log("Error sending to debugy: " + str(e.with_traceback()))
                 return
 
 

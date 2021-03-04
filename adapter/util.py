@@ -18,7 +18,7 @@ log_file = abspath(join(dirname(__file__), 'log.txt'))
 if debug:
     open(log_file, 'w+').close()  # Creates and/or clears the file
 
-ptvsd_path = join(abspath(dirname(__file__)), "python")
+debugy_path = join(abspath(dirname(__file__)), "python")
 
 
 # --- Utility functions --- #
@@ -43,19 +43,19 @@ def run(func, args=()):
 ATTACH_TEMPLATE = """
 import sys
 import os
-ptvsd_module = r"{ptvsd_path}"
-if ptvsd_module not in sys.path:
-    sys.path.insert(0, ptvsd_module)
+debugy_module = r"{debugy_path}"
+if debugy_module not in sys.path:
+    sys.path.insert(0, debugy_module)
 
-import ptvsd
+import debugpy
 
 try:
-    ptvsd.enable_attach(("{hostname}",{port}))
-except ptvsd.AttachAlreadyEnabledError:
-    # Already attached
-    pass
-
-print("--- Successfully attached to Sublime ---")
+    debugpy.configure(python="{interpreter}")
+    debugpy.listen(("{hostname}",{port}))
+except RuntimeError:
+    x=1
+finally:
+    sys.stderr.write("\\n\\nConnection to Sublime Debugger is active.\\n\\n")
 """
 
 # Used to run the module
@@ -65,17 +65,17 @@ try:
     if current_directory not in sys.path:
         sys.path.insert(0, current_directory)
     
-    print(' --- Debugging {file_name}... --- \\n')
+    sys.stderr.write('\\nDebugging {file_name}...\\n\\n')
 
     if '{file_name}' not in globals().keys():
         import {file_name}
     else:
         reload({file_name})
 
-    print(' --- Finished debugging {file_name} --- \\n')
+    sys.stderr.write('\\n\\nFinished debugging {file_name}.\\n')
     
 except Exception as e:
-    print('Error while debugging: ' + str(e))
+    sys.stderr.write('Error while debugging: ' + str(e))
     raise e
 """
 

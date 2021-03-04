@@ -11,6 +11,7 @@ from threading import Timer
 from shutil import copy
 import sublime
 import time
+import sys
 import os
 
 
@@ -33,6 +34,7 @@ config_snippets = [
             "type": adapter_type,
             "program": "\${file\}",
             "request": "attach",  # can only be attach or launch
+            "interpreter": sys.executable,
             "ptvsd":  # The host/port used to communicate with ptvsd in Nuke
             {
                 "host": "localhost",
@@ -45,7 +47,7 @@ config_snippets = [
 # The settings used by the Debugger to run the adapter.
 settings = {
     "type": adapter_type,
-    "command": ["C:\Python27\python.exe", adapter_path]
+    "command": [sys.executable, adapter_path]
 }
 
 # Instantiate variables needed for checking thread
