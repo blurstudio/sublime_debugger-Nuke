@@ -114,7 +114,7 @@ def attach_to_nuke(contents):
                 Please ensure Nuke is running. If this is your first time
                 using the debug adapter, try restarting Nuke.
             """
-        ).with_traceback()
+        )
 
     run_code = RUN_TEMPLATE.format(
         hostname=config['debugpy']['host'],
@@ -196,7 +196,7 @@ def start_debugging(address):
                     on_receive_from_debugpy(message)
 
         except Exception as e:
-            log("Failure reading Nuke's debugpy output: \n" + str(e.with_traceback()))
+            log("Failure reading Nuke's debugpy output: \n" + str(e))
             debugpy_socket.close()
             break
 
@@ -220,7 +220,7 @@ def debugpy_send_loop():
                 log("Debug socket closed.")
                 return
             except Exception as e:
-                log("Error sending to debugpy: " + str(e.with_traceback()))
+                log("Error sending to debugpy: " + str(e))
                 return
 
 
