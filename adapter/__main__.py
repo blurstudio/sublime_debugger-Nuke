@@ -241,18 +241,6 @@ def on_receive_from_debugpy(message):
         interface.send(message)
         send_code_to_nuke(run_code)
         return
-    
-    elif cmd == "variables":
-        # Hide the __builtins__ variable (causes errors in the debugger gui)
-        vars = c['body'].get('variables')
-        if vars:
-            toremove = []
-            for var in vars:
-                if var['name'] in ('__builtins__', '__doc__', '__file__', '__name__', '__package__'):
-                    toremove.append(var)
-            for var in toremove:
-                vars.remove(var)
-            message = json.dumps(c)
 
     # Send responses and events to debugger
     if seq in processed_seqs:
