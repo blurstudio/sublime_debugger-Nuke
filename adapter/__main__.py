@@ -5,7 +5,7 @@ This script creates a connection between the Debugger and Foundry's Nuke for deb
 
 """
 
-from util import (Queue, log, run, dirname, debugy_path, join, split,
+from util import (Queue, log, run, dirname, debugpy_path, join, split,
                   basename, ATTACH_TEMPLATE, ATTACH_ARGS, RUN_TEMPLATE, 
                   INITIALIZE_RESPONSE, NUKE_CMD_TEMPLATE, CONTENT_HEADER)
 from interface import DebuggerInterface
@@ -20,8 +20,8 @@ run_code = ""
 attach_code = ""
 last_seq = -1
 
-debugy_send_queue = Queue()
-debugy_socket = None
+debugpy_send_queue = Queue()
+debugpy_socket = None
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
 def on_receive_from_debugger(message):
     """
     Intercept the initialize and attach requests from the debugger
-    while debugy is being set up
+    while debugpy is being set up
     """
 
     global last_seq, avoiding_continue_stall
@@ -65,8 +65,8 @@ def on_receive_from_debugger(message):
         config = contents['arguments']
         new_args = ATTACH_ARGS.format(
             dir=dirname(config['program']).replace('\\', '\\\\'),
-            hostname=config['debugy']['host'],
-            port=int(config['debugy']['port']),
+            hostname=config['debugpy']['host'],
+            port=int(config['debugpy']['port']),
             # filepath=config['program'].replace('\\', '\\\\')
         )
 
@@ -80,7 +80,7 @@ def on_receive_from_debugger(message):
         avoiding_continue_stall = True
 
     # Then just put the message in the debugpy queue
-    debugy_send_queue.put(message)
+    debugpy_send_queue.put(message)
 
 
 def attach_to_nuke(contents):
@@ -93,9 +93,9 @@ def attach_to_nuke(contents):
 
     # format attach code appropriately
     attach_code = ATTACH_TEMPLATE.format(
-        debugy_path=debugy_path,
-        hostname=config['debugy']['host'],
-        port=int(config['debugy']['port']),
+        debugpy_path=debugpy_path,
+        hostname=config['debugpy']['host'],
+        port=int(config['debugpy']['port']),
         interpreter=config['interpreter'],
     )
 
@@ -117,14 +117,14 @@ def attach_to_nuke(contents):
         ).with_traceback()
 
     run_code = RUN_TEMPLATE.format(
-        hostname=config['debugy']['host'],
-        port=int(config['debugy']['port']),
+        hostname=config['debugpy']['host'],
+        port=int(config['debugpy']['port']),
         dir=dirname(config['program']),
         file_name=split(config['program'])[1][:-3] or basename(split(config['program'])[0])[:-3]
     )
 
     # Then start the Nuke debugging threads
-    run(start_debugging, ((config['debugy']['host'], int(config['debugy']['port'])),))
+    run(start_debugging, ((config['debugpy']['host'], int(config['debugpy']['port'])),))
 
 
 def send_code_to_nuke(code):
@@ -163,14 +163,14 @@ def start_debugging(address):
 
     log("Connecting to " + address[0] + ":" + str(address[1]))
 
-    global debugy_socket
-    debugy_socket = socket.create_connection(address)
+    global debugpy_socket
+    debugpy_socket = socket.create_connection(address)
 
     log("Successfully connected to Nuke for debugging. Starting...")
 
-    run(debugy_send_loop)  # Start sending requests to debugpy
+    run(debugpy_send_loop)  # Start sending requests to debugpy
 
-    fstream = debugy_socket.makefile()
+    fstream = debugpy_socket.makefile()
 
     while True:
         try:
@@ -197,30 +197,30 @@ def start_debugging(address):
 
         except Exception as e:
             log("Failure reading Nuke's debugpy output: \n" + str(e.with_traceback()))
-            debugy_socket.close()
+            debugpy_socket.close()
             break
 
 
-def debugy_send_loop():
+def debugpy_send_loop():
     """
     The loop that waits for items to show in the send queue and prints them.
     Blocks until an item is present
     """
 
     while True:
-        msg = debugy_send_queue.get()
+        msg = debugpy_send_queue.get()
         if msg is None:
             return
         else:
             try:
-                debugy_socket.send('Content-Length: {}\r\n\r\n'.format(len(msg)).encode('UTF-8'))
-                debugy_socket.send(msg.encode('UTF-8'))
-                log('Sent to debugy:', msg)
+                debugpy_socket.send('Content-Length: {}\r\n\r\n'.format(len(msg)).encode('UTF-8'))
+                debugpy_socket.send(msg.encode('UTF-8'))
+                log('Sent to debugpy:', msg)
             except OSError:
                 log("Debug socket closed.")
                 return
             except Exception as e:
-                log("Error sending to debugy: " + str(e.with_traceback()))
+                log("Error sending to debugpy: " + str(e.with_traceback()))
                 return
 
 

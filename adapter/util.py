@@ -18,7 +18,7 @@ log_file = abspath(join(dirname(__file__), 'log.txt'))
 if debug:
     open(log_file, 'w+').close()  # Creates and/or clears the file
 
-debugy_path = join(abspath(dirname(__file__)), "python")
+debugpy_path = join(abspath(dirname(__file__)), "python")
 
 
 # --- Utility functions --- #
@@ -43,9 +43,9 @@ def run(func, args=()):
 ATTACH_TEMPLATE = """
 import sys
 import os
-debugy_module = r"{debugy_path}"
-if debugy_module not in sys.path:
-    sys.path.insert(0, debugy_module)
+debugpy_module = r"{debugpy_path}"
+if debugpy_module not in sys.path:
+    sys.path.insert(0, debugpy_module)
 
 import debugpy
 
