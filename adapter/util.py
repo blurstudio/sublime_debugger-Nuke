@@ -58,21 +58,28 @@ finally:
     sys.stderr.write("\\n\\nConnection to Sublime Debugger is active.\\n\\n")
 """
 
-# Used to run the module
+# Used to run the module.
+# Using stderr to print because printing
+# to console doesn't work otherwise.
 RUN_TEMPLATE = """
 try:
+    s = sys.stdout
+    sys.stdout = sys.stderr
+
     current_directory = r"{dir}"
     if current_directory not in sys.path:
         sys.path.insert(0, current_directory)
-    
-    sys.stderr.write('\\nDebugging {file_name}...\\n\\n')
+
+    print('\\nDebugging {file_name}...\\n\\n')
 
     if '{file_name}' not in globals().keys():
         import {file_name}
     else:
         reload({file_name})
 
-    sys.stderr.write('\\n\\nFinished debugging {file_name}.\\n')
+    print('\\n\\nDone.\\n')
+
+    sys.stdout = s
     
 except Exception as e:
     sys.stderr.write('Error while debugging: ' + str(e))
@@ -154,7 +161,7 @@ if not namespace:
     __main__.__dict__['_atom_plugin_SendToNuke'] = namespace
 
 namespace['__file__'] = r"{0}"
-namespace['print'] = sys.stdout.write
+namespace['print'] = sys.stderr.write
 
 try:
     execfile(r"{0}", namespace, namespace)
