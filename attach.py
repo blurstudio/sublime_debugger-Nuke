@@ -58,22 +58,26 @@ check_speed = 3  # number of seconds to wait between checks for adapter presence
 user_nuke_path = join(expanduser("~"), ".nuke")
 setup = join(adapter_path, 'resources', 'setup')
 
-srv = join(user_nuke_path, "debug_server.py")
+srv = join(user_nuke_path, "script_debug_server.py")
 menu = join(user_nuke_path, "menu.py")
 
 first_setup = False
 
+if exists(join(user_nuke_path, 'debug_server.py')):
+    os.remove(join(user_nuke_path, 'debug_server.py'))
+
 if not exists(srv):
-    copy(join(setup, 'debug_server.py'), srv)
+    copy(join(setup, 'script_debug_server.py'), srv)
     first_setup = True
 
 if not exists(menu):
-    copy(join(setup, 'menu.py'), menu)
+    with open(menu, 'w') as f:
+        f.write('import script_debug_server')
 else:
     with open(menu, 'r+') as f:
         contents = f.read()
-        if "import debug_server" not in contents:
-            f.write("\nimport debug_server")
+        if "import script_debug_server" not in contents:
+            f.write("\nimport script_debug_server")
 
 
 def check_for_adapter():
