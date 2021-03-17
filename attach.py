@@ -142,6 +142,3 @@ def plugin_unloaded():
 
     if exists(srv):
         os.remove(srv)
-
-    if exists(menu):
-        os.remove(menu)
