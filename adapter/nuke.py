@@ -48,10 +48,10 @@ class Nuke(adapter.AdapterConfiguration):
 		custom_log(f"Found python install: {python}")
 		
 		# Get host/port from config
-		host = configuration['debugpy']['host']
+		host = configuration['host']
 		if host == 'localhost':
 			host = '127.0.0.1'
-		port = int(configuration['debugpy']['port'])
+		port = int(configuration['port'])
 
 		# Format the simulated attach response to send it back to the debugger
 		# while we set up the debugpy in the background
