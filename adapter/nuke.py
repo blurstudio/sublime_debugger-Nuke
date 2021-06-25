@@ -87,6 +87,10 @@ class Nuke(adapter.AdapterConfiguration):
 		client.send(cmd.encode("UTF-8"))
 		client.close()
 
+		# Wait for code to be executed in Nuke
+		import time
+		time.sleep(5)	
+
 		custom_log(f"Sent attach code:\n\n {attach_code}")
 
 		custom_log(f"Connecting to {host}:{str(port)}")
